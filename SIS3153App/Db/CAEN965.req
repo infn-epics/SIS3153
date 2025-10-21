@@ -1,0 +1,56 @@
+# Autosave request file for CAEN V965 QDC
+# This file saves settings that should persist across IOC reboots
+
+# Geographic Address
+$(P)GeoAddressSet
+
+# IPED (Pedestal)
+$(P)IPedestal
+
+# Crate Selection
+$(P)CrateSelect
+
+# Slide Constant
+$(P)SlideConstant
+
+# Almost Full Level
+$(P)AlmostFullLevel
+
+# Buffer Almost Done
+$(P)BufferAlmostDone
+
+# Channel Thresholds - Low Range (16 channels)
+$(P)Ch0ThresholdLow
+$(P)Ch1ThresholdLow
+$(P)Ch2ThresholdLow
+$(P)Ch3ThresholdLow
+$(P)Ch4ThresholdLow
+$(P)Ch5ThresholdLow
+$(P)Ch6ThresholdLow
+$(P)Ch7ThresholdLow
+$(P)Ch8ThresholdLow
+$(P)Ch9ThresholdLow
+$(P)Ch10ThresholdLow
+$(P)Ch11ThresholdLow
+$(P)Ch12ThresholdLow
+$(P)Ch13ThresholdLow
+$(P)Ch14ThresholdLow
+$(P)Ch15ThresholdLow
+
+# Channel Thresholds - High Range (16 channels)
+$(P)Ch0ThresholdHigh
+$(P)Ch1ThresholdHigh
+$(P)Ch2ThresholdHigh
+$(P)Ch3ThresholdHigh
+$(P)Ch4ThresholdHigh
+$(P)Ch5ThresholdHigh
+$(P)Ch6ThresholdHigh
+$(P)Ch7ThresholdHigh
+$(P)Ch8ThresholdHigh
+$(P)Ch9ThresholdHigh
+$(P)Ch10ThresholdHigh
+$(P)Ch11ThresholdHigh
+$(P)Ch12ThresholdHigh
+$(P)Ch13ThresholdHigh
+$(P)Ch14ThresholdHigh
+$(P)Ch15ThresholdHigh

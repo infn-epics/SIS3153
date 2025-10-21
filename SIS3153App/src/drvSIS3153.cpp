@@ -1,16 +1,19 @@
 /*
  * drvSIS3153.cpp
  *
- * Driver for SIS 3153 USB to VME interface
+ * Driver for SIS 3153 USB/Ethernet to VME interface
  *
  * Author: Mark Rivers
+ * Modified: Andrea Michelotti - Added Ethernet support
  *
  * Created October 5, 2024
+ * Modified October 20, 2025
  */
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <string>
 
 #include <iocsh.h>
 
@@ -18,8 +21,15 @@
 
 #include <sis3150usb_vme.h>
 #include <sis3150usb_vme_calls.h>
+#include <sis3153ETH_vme_class.h>
 
 #include <epicsExport.h>
+
+// Connection types
+typedef enum {
+    CONNECTION_TYPE_USB,
+    CONNECTION_TYPE_ETHERNET
+} ConnectionType;
 
 static const char *driverName="drvSIS3153";
 
@@ -38,7 +48,7 @@ static const char *driverName="drvSIS3153";
 
 class drvSIS3153 : public asynPortDriver {
 public:
-    drvSIS3153(const char *portName);
+    drvSIS3153(const char *portName, const char *connectionType, const char *ipAddress);
 
     /* These are the methods that we override from asynPortDriver */
     virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
@@ -61,11 +71,16 @@ protected:
     int P_A32D32;
 
 private:
+    ConnectionType connType_;
+    // USB members
     struct SIS3150USB_Device_Struct devStruct_;
     struct usb_dev_handle *devHandle_;
+    // Ethernet members
+    sis3153eth *ethDevice_;
+    char ipAddress_[32];
 };
 
-drvSIS3153::drvSIS3153(const char *portName)
+drvSIS3153::drvSIS3153(const char *portName, const char *connectionType, const char *ipAddress)
    : asynPortDriver(portName,
                     1, /* maxAddr */
                     asynInt32Mask | asynDrvUserMask, /* Interface mask */
@@ -73,36 +88,13 @@ drvSIS3153::drvSIS3153(const char *portName)
                     ASYN_CANBLOCK, /* asynFlags.  This driver blocks and it is not multi-device */
                     1, /* Autoconnect */
                     0, /* Default priority */
-                    0) /* Default stack size*/
+                    0), /* Default stack size*/
+    devHandle_(NULL),
+    ethDevice_(NULL)
 {
     const char *functionName = "drvSIS3153";
     int status;
     unsigned int found;
-
-    status = FindAll_SIS3150USB_Devices(&devStruct_, &found, 1);
-    printf("FindAll_SIS3150USB_Devices found %d devices, status=%d\n", found, status);
-    if (status) {
-        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-        "%s::%s error calling FindAll_SIS3150USB_Devices = %d\n", 
-        driverName, functionName, status);
-        return;
-    }
-
-    printf("path: %s\n", devStruct_.cDName);
-    printf("vendor: 0x%04X\n", devStruct_.idVendor);
-    printf("product: 0x%04X\n", devStruct_.idProduct);
-
-    status = Sis3150usb_OpenDriver_And_Download_FX2_Setup ((PCHAR)devStruct_.cDName, &devStruct_);
-    if (status) {
-        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-        "%s::%s error calling Sis3150usb_OpenDriver_And_Download_FX2_Setup = %d\n", 
-        driverName, functionName, status);
-        return;
-    }
-    devHandle_ = devStruct_.hDev;
-    printf("serial #: %04d\n", devStruct_.idSerNo);
-    printf("firmware: 0x%04x\n", devStruct_.idFirmwareVersion);
-    printf("handle: %p\n", devHandle_);
 
     createParam(P_A16D8_String,  asynParamInt32, &P_A16D8);
     createParam(P_A16D16_String, asynParamInt32, &P_A16D16);
@@ -113,6 +105,74 @@ drvSIS3153::drvSIS3153(const char *portName)
     createParam(P_A32D8_String,  asynParamInt32, &P_A32D8);
     createParam(P_A32D16_String, asynParamInt32, &P_A32D16);
     createParam(P_A32D32_String, asynParamInt32, &P_A32D32);
+
+    // Determine connection type
+    if (strcmp(connectionType, "USB") == 0) {
+        connType_ = CONNECTION_TYPE_USB;
+        
+        status = FindAll_SIS3150USB_Devices(&devStruct_, &found, 1);
+        printf("FindAll_SIS3150USB_Devices found %d devices, status=%d\n", found, status);
+        if (status) {
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+            "%s::%s error calling FindAll_SIS3150USB_Devices = %d\n", 
+            driverName, functionName, status);
+            return;
+        }
+
+        printf("path: %s\n", devStruct_.cDName);
+        printf("vendor: 0x%04X\n", devStruct_.idVendor);
+        printf("product: 0x%04X\n", devStruct_.idProduct);
+
+        status = Sis3150usb_OpenDriver_And_Download_FX2_Setup ((PCHAR)devStruct_.cDName, &devStruct_);
+        if (status) {
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+            "%s::%s error calling Sis3150usb_OpenDriver_And_Download_FX2_Setup = %d\n", 
+            driverName, functionName, status);
+            return;
+        }
+        devHandle_ = devStruct_.hDev;
+        printf("serial #: %04d\n", devStruct_.idSerNo);
+        printf("firmware: 0x%04x\n", devStruct_.idFirmwareVersion);
+        printf("handle: %p\n", devHandle_);
+        printf("USB connection established\n");
+        
+    } else if (strcmp(connectionType, "ETHERNET") == 0) {
+        connType_ = CONNECTION_TYPE_ETHERNET;
+        
+        if (ipAddress == NULL || strlen(ipAddress) == 0) {
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s IP address required for Ethernet connection\n",
+                driverName, functionName);
+            return;
+        }
+        
+        strncpy(ipAddress_, ipAddress, sizeof(ipAddress_) - 1);
+        ipAddress_[sizeof(ipAddress_) - 1] = '\0';
+        sis3153eth(&ethDevice_, (char *)ipAddress_);
+        if (ethDevice_ == NULL) {
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s error creating sis3153eth object\n",
+                driverName, functionName);
+            return;
+        }
+        
+        status = ethDevice_->vmeopen();
+        if (status != 0) {
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s error opening Ethernet VME connection, status=0x%x\n",
+                driverName, functionName, status);
+            delete ethDevice_;
+            ethDevice_ = NULL;
+            return;
+        }
+        printf("Ethernet connection established to %s\n", ipAddress_);
+        
+    } else {
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+            "%s::%s invalid connection type '%s', must be 'USB' or 'ETHERNET'\n",
+            driverName, functionName, connectionType);
+        return;
+    }
 }
 
 asynStatus drvSIS3153::readInt32(asynUser *pasynUser, epicsInt32 *value)
@@ -128,50 +188,98 @@ asynStatus drvSIS3153::readInt32(asynUser *pasynUser, epicsInt32 *value)
     /* Fetch the parameter string name for possible use in debugging */
     getParamName(function, &paramName);
 
-    if (function == P_A16D8) {
-        u_int8_t vme_data;
-        status = vme_A16D8_read(devHandle_, addr, &vme_data);
-        *value = vme_data;
-    }
-    else if (function == P_A16D16) {
-        u_int16_t vme_data;
-        status = vme_A16D16_read(devHandle_, addr, &vme_data);
-        *value = vme_data;
-    }
-    else if (function == P_A16D32) {
-        u_int32_t vme_data;
-        status = vme_A16D32_read(devHandle_, addr, &vme_data);
-        *value = vme_data;
-    }
-    else if (function == P_A24D8) {
-        u_int8_t vme_data;
-        status = vme_A24D8_read(devHandle_, addr, &vme_data);
-        *value = vme_data;
-    }
-    else if (function == P_A24D16) {
-        u_int16_t vme_data;
-        status = vme_A24D16_read(devHandle_, addr, &vme_data);
-        *value = vme_data;
-    }
-    else if (function == P_A24D32) {
-        u_int32_t vme_data;
-        status = vme_A24D32_read(devHandle_, addr, &vme_data);
-        *value = vme_data;
-    }
-    else if (function == P_A32D8) {
-        u_int8_t vme_data;
-        status = vme_A32D8_read(devHandle_, addr, &vme_data);
-        *value = vme_data;
-    }
-    else if (function == P_A32D16) {
-        u_int16_t vme_data;
-        status = vme_A32D16_read(devHandle_, addr, &vme_data);
-        *value = vme_data;
-    }
-    else if (function == P_A32D32) {
-        u_int32_t vme_data;
-        status = vme_A32D32_read(devHandle_, addr, &vme_data);
-        *value = vme_data;
+    if (connType_ == CONNECTION_TYPE_USB) {
+        if (function == P_A16D8) {
+            u_int8_t vme_data;
+            status = vme_A16D8_read(devHandle_, addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A16D16) {
+            u_int16_t vme_data;
+            status = vme_A16D16_read(devHandle_, addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A16D32) {
+            u_int32_t vme_data;
+            status = vme_A16D32_read(devHandle_, addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A24D8) {
+            u_int8_t vme_data;
+            status = vme_A24D8_read(devHandle_, addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A24D16) {
+            u_int16_t vme_data;
+            status = vme_A24D16_read(devHandle_, addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A24D32) {
+            u_int32_t vme_data;
+            status = vme_A24D32_read(devHandle_, addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A32D8) {
+            u_int8_t vme_data;
+            status = vme_A32D8_read(devHandle_, addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A32D16) {
+            u_int16_t vme_data;
+            status = vme_A32D16_read(devHandle_, addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A32D32) {
+            u_int32_t vme_data;
+            status = vme_A32D32_read(devHandle_, addr, &vme_data);
+            *value = vme_data;
+        }
+    } else { // CONNECTION_TYPE_ETHERNET
+        if (function == P_A16D8) {
+            u_int8_t vme_data;
+            status = ethDevice_->vme_A16D8_read(addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A16D16) {
+            u_int16_t vme_data;
+            status = ethDevice_->vme_A16D16_read(addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A16D32) {
+            u_int32_t vme_data;
+            status = ethDevice_->vme_A16D32_read(addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A24D8) {
+            u_int8_t vme_data;
+            status = ethDevice_->vme_A24D8_read(addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A24D16) {
+            u_int16_t vme_data;
+            status = ethDevice_->vme_A24D16_read(addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A24D32) {
+            u_int32_t vme_data;
+            status = ethDevice_->vme_A24D32_read(addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A32D8) {
+            u_int8_t vme_data;
+            status = ethDevice_->vme_A32D8_read(addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A32D16) {
+            u_int16_t vme_data;
+            status = ethDevice_->vme_A32D16_read(addr, &vme_data);
+            *value = vme_data;
+        }
+        else if (function == P_A32D32) {
+            u_int32_t vme_data;
+            status = ethDevice_->vme_A32D32_read(addr, &vme_data);
+            *value = vme_data;
+        }
     }
 
     if (status)
@@ -198,41 +306,80 @@ asynStatus drvSIS3153::writeInt32(asynUser *pasynUser, epicsInt32 value)
     /* Fetch the parameter string name for possible use in debugging */
     getParamName(function, &paramName);
 
-    if (function == P_A16D8) {
-        u_int8_t vme_data = value;
-        status = vme_A16D8_write(devHandle_, addr, vme_data);
-    }
-    else if (function == P_A16D16) {
-        u_int16_t vme_data = value;
-        status = vme_A16D16_write(devHandle_, addr, vme_data);
-    }
-    else if (function == P_A16D32) {
-        u_int32_t vme_data = value;
-        status = vme_A16D32_write(devHandle_, addr, vme_data);
-    }
-    else if (function == P_A24D8) {
-        u_int8_t vme_data = value;
-        status = vme_A24D8_write(devHandle_, addr, vme_data);
-    }
-    else if (function == P_A24D16) {
-        u_int16_t vme_data = value;
-        status = vme_A24D16_write(devHandle_, addr, vme_data);
-    }
-    else if (function == P_A24D32) {
-        u_int32_t vme_data = value;
-        status = vme_A24D32_write(devHandle_, addr, vme_data);
-    }
-    else if (function == P_A32D8) {
-        u_int8_t vme_data = value;
-        status = vme_A32D8_write(devHandle_, addr, vme_data);
-    }
-    else if (function == P_A32D16) {
-        u_int16_t vme_data = value;
-        status = vme_A32D16_write(devHandle_, addr, vme_data);
-    }
-    else if (function == P_A32D32) {
-        u_int32_t vme_data = value;
-        status = vme_A32D32_write(devHandle_, addr, vme_data);
+    if (connType_ == CONNECTION_TYPE_USB) {
+        if (function == P_A16D8) {
+            u_int8_t vme_data = value;
+            status = vme_A16D8_write(devHandle_, addr, vme_data);
+        }
+        else if (function == P_A16D16) {
+            u_int16_t vme_data = value;
+            status = vme_A16D16_write(devHandle_, addr, vme_data);
+        }
+        else if (function == P_A16D32) {
+            u_int32_t vme_data = value;
+            status = vme_A16D32_write(devHandle_, addr, vme_data);
+        }
+        else if (function == P_A24D8) {
+            u_int8_t vme_data = value;
+            status = vme_A24D8_write(devHandle_, addr, vme_data);
+        }
+        else if (function == P_A24D16) {
+            u_int16_t vme_data = value;
+            status = vme_A24D16_write(devHandle_, addr, vme_data);
+        }
+        else if (function == P_A24D32) {
+            u_int32_t vme_data = value;
+            status = vme_A24D32_write(devHandle_, addr, vme_data);
+        }
+        else if (function == P_A32D8) {
+            u_int8_t vme_data = value;
+            status = vme_A32D8_write(devHandle_, addr, vme_data);
+        }
+        else if (function == P_A32D16) {
+            u_int16_t vme_data = value;
+            status = vme_A32D16_write(devHandle_, addr, vme_data);
+        }
+        else if (function == P_A32D32) {
+            u_int32_t vme_data = value;
+            status = vme_A32D32_write(devHandle_, addr, vme_data);
+        }
+    } else { // CONNECTION_TYPE_ETHERNET
+        if (function == P_A16D8) {
+            u_int8_t vme_data = value;
+            status = ethDevice_->vme_A16D8_write(addr, vme_data);
+        }
+        else if (function == P_A16D16) {
+            u_int16_t vme_data = value;
+            status = ethDevice_->vme_A16D16_write(addr, vme_data);
+        }
+        else if (function == P_A16D32) {
+            u_int32_t vme_data = value;
+            status = ethDevice_->vme_A16D32_write(addr, vme_data);
+        }
+        else if (function == P_A24D8) {
+            u_int8_t vme_data = value;
+            status = ethDevice_->vme_A24D8_write(addr, vme_data);
+        }
+        else if (function == P_A24D16) {
+            u_int16_t vme_data = value;
+            status = ethDevice_->vme_A24D16_write(addr, vme_data);
+        }
+        else if (function == P_A24D32) {
+            u_int32_t vme_data = value;
+            status = ethDevice_->vme_A24D32_write(addr, vme_data);
+        }
+        else if (function == P_A32D8) {
+            u_int8_t vme_data = value;
+            status = ethDevice_->vme_A32D8_write(addr, vme_data);
+        }
+        else if (function == P_A32D16) {
+            u_int16_t vme_data = value;
+            status = ethDevice_->vme_A32D16_write(addr, vme_data);
+        }
+        else if (function == P_A32D32) {
+            u_int32_t vme_data = value;
+            status = ethDevice_->vme_A32D32_write(addr, vme_data);
+        }
     }
 
     if (status)
@@ -291,19 +438,30 @@ asynStatus drvSIS3153::drvUserDestroy(asynUser *pasynUser)
     return asynSuccess;
 }
 
-/* Configuration routine.  Called directly, or from the iocsh function below */
+/* Configuration routines.  Called directly, or from the iocsh function below */
 
 extern "C" {
 
+/** USB Configuration command for SIS3153 */
 int drvSIS3153Configure(const char *portName)
 {
-    new drvSIS3153(portName);
+    new drvSIS3153(portName, "USB", NULL);
+    return(asynSuccess);
+}
+
+/** Ethernet Configuration command for SIS3153 
+  * \param[in] portName The name of the asyn port driver to be created.
+  * \param[in] ipAddress The IP address of the SIS3153 device (e.g., "192.168.1.100") */
+int drvSIS3153EthConfigure(const char *portName, const char *ipAddress)
+{
+    new drvSIS3153(portName, "ETHERNET", ipAddress);
     return(asynSuccess);
 }
 
 
 /* EPICS iocsh shell commands */
 
+// USB configuration
 static const iocshArg initArg0 = { "portName",iocshArgString};
 static const iocshArg * const initArgs[] = {&initArg0};
 static const iocshFuncDef initFuncDef = {"drvSIS3153Configure", 1, initArgs};
@@ -312,9 +470,20 @@ static void initCallFunc(const iocshArgBuf *args)
     drvSIS3153Configure(args[0].sval);
 }
 
+// Ethernet configuration
+static const iocshArg initEthArg0 = { "portName",iocshArgString};
+static const iocshArg initEthArg1 = { "ipAddress",iocshArgString};
+static const iocshArg * const initEthArgs[] = {&initEthArg0, &initEthArg1};
+static const iocshFuncDef initEthFuncDef = {"drvSIS3153EthConfigure", 2, initEthArgs};
+static void initEthCallFunc(const iocshArgBuf *args)
+{
+    drvSIS3153EthConfigure(args[0].sval, args[1].sval);
+}
+
 void drvSIS3153Register(void)
 {
     iocshRegister(&initFuncDef, initCallFunc);
+    iocshRegister(&initEthFuncDef, initEthCallFunc);
 }
 
 epicsExportRegistrar(drvSIS3153Register);

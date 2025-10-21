@@ -38,7 +38,12 @@ SIS3153App_LIBS += SIS3153Support
 SIS3153App_LIBS += SIS3150
 SIS3153App_LIBS += SISLoader
 SIS3153App_LIBS += asyn
-SIS3153App_SYS_LIBS += usb
+
+# System library for USB support (legacy libusb-0.1)
+# Must come after SIS libraries that depend on it
+# Using explicit path to ensure correct version is linked
+USR_SYS_LIBS += usb
+USR_LDFLAGS += -Wl,--no-as-needed
 
 # Link QSRV (pvAccess Server) if available
 ifdef EPICS_QSRV_MAJOR_VERSION

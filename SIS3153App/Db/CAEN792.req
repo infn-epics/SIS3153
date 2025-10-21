@@ -1,0 +1,51 @@
+# Autosave request file for CAEN V792 QDC
+# This file saves settings that should persist across IOC reboots
+
+# Geographic Address
+$(P)GeoAddressSet
+
+# IPED (Pedestal)
+$(P)IPedestal
+
+# Crate Selection
+$(P)CrateSelect
+
+# Almost Full Level
+$(P)AlmostFullLevel
+
+# Buffer Almost Done
+$(P)BufferAlmostDone
+
+# Channel Thresholds (32 channels)
+$(P)Ch0Threshold
+$(P)Ch1Threshold
+$(P)Ch2Threshold
+$(P)Ch3Threshold
+$(P)Ch4Threshold
+$(P)Ch5Threshold
+$(P)Ch6Threshold
+$(P)Ch7Threshold
+$(P)Ch8Threshold
+$(P)Ch9Threshold
+$(P)Ch10Threshold
+$(P)Ch11Threshold
+$(P)Ch12Threshold
+$(P)Ch13Threshold
+$(P)Ch14Threshold
+$(P)Ch15Threshold
+$(P)Ch16Threshold
+$(P)Ch17Threshold
+$(P)Ch18Threshold
+$(P)Ch19Threshold
+$(P)Ch20Threshold
+$(P)Ch21Threshold
+$(P)Ch22Threshold
+$(P)Ch23Threshold
+$(P)Ch24Threshold
+$(P)Ch25Threshold
+$(P)Ch26Threshold
+$(P)Ch27Threshold
+$(P)Ch28Threshold
+$(P)Ch29Threshold
+$(P)Ch30Threshold
+$(P)Ch31Threshold

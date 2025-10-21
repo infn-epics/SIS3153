@@ -9,7 +9,7 @@ epicsEnvSet("PORT", "SIS3153")
 dbLoadDatabase "../../dbd/SIS3153App.dbd"
 SIS3153App_registerRecordDeviceDriver pdbbase
 
-drvSIS3153Configure("$(PORT)")
+drvSIS3153EthConfigure("$(PORT)", "192.168.1.100")
 
 dbLoadRecords("$(SIS3153)/db/Zygo1404.template", "P=$(PREFIX),PORT=$(PORT)")
 dbLoadRecords("$(SIS3153)/db/Joerger.template", "P=$(PREFIX),PORT=$(PORT)")

@@ -1721,7 +1721,7 @@ int sis3153eth::vme_A32D16_read (UINT addr, USHORT* data)   // modified 04.09.20
 	this->vmeHead.Mode	= 0x0009;
 
 	return_code = this->udp_single_read(1, &udp_address, &data_32)  ;
-	printf("SIS vme_A32D16_read: addr = 0x%08X    data = 0x%08X    return_code = 0x%08X \n", addr, data_32 ,return_code);
+	//printf("SIS vme_A32D16_read: addr = 0x%08X    data = 0x%08X    return_code = 0x%08X \n", addr, data_32 ,return_code);
 	*data = (USHORT) (data_32) & 0xffff ;
 
 	return return_code;

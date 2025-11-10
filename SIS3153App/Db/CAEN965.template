@@ -7,13 +7,13 @@
 # Board Identification Registers
 #########################################
 
-record(longin,"$(P)ManufacturerID") {
-    field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PORT),0) A32D32 $(BASE)802A")
-    field(SCAN, "I/O Intr")
-    field(PINI, "YES")
-    info(autosaveFields_pass0, "SCAN")
-}
+#record(longin,"$(P)ManufacturerID") {
+#    field(DTYP, "asynInt32")
+#    field(INP,  "@asyn($(PORT),0) A32D32 $(BASE)802A")
+#    field(SCAN, "I/O Intr")
+#    field(PINI, "YES")
+#    info(autosaveFields_pass0, "SCAN")
+#}
 
 record(longin,"$(P)BoardID") {
     field(DTYP, "asynInt32")
@@ -54,33 +54,52 @@ record(longin,"$(P)SerialNumberMSB") {
 # Control and Status Registers
 #########################################
 
+record(longin,"$(P)LoadTestRegister") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)102C")
+    field(SCAN, "I/O Intr")
+}
+#record(longout,"$(P)LoadTestRegister_SP") {
+#    field(DTYP, "asynInt32")
+#    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)102C")
+#}
+
+
+
 record(longin,"$(P)Status") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)100E")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "1 second")
 }
 
 record(longin,"$(P)Control") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1010")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "1 second")
 }
 
-record(longout,"$(P)ControlSet") {
-    field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)1010")
-}
+#record(longout,"$(P)ControlSet") {
+#    field(DTYP, "asynInt32")
+#    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)1010")
+#}
 
 record(longin,"$(P)Status2") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1022")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "1 second")
 }
 
-record(longout,"$(P)BitSet") {
+record(longin,"$(P)BitSet_RV") {
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)1006")
+    field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1006")
+    field(SCAN, "1 second")
 }
+
+
+#record(longout,"$(P)BitSet") {
+#    field(DTYP, "asynInt32")
+#    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)1006")
+#}
 
 record(longout,"$(P)BitClear") {
     field(DTYP, "asynInt32")
@@ -153,7 +172,7 @@ record(longout,"$(P)CrateSelect") {
 record(longin,"$(P)EventCounterLow") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1024")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "1 second")
 }
 
 record(longin,"$(P)EventCounterHigh") {
@@ -182,27 +201,27 @@ record(longout,"$(P)EventTrigger") {
 
 # record(longout,"$(P)Ch$(CHAN)ThresholdLow") {
 #     field(DTYP, "asynInt32")
-#     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $(THRS_ADDR_LOW)")
+#     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $  (THRS_ADDR_LOW)")
 #     field(PINI, "YES")
 #     info(autosaveFields_pass0, "VAL")
 # }
 
 # record(longin,"$(P)Ch$(CHAN)ThresholdLowRBV") {
 #     field(DTYP, "asynInt32")
-#     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $(THRS_ADDR_LOW)")
+#     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $   (THRS_ADDR_LOW)")
 #     field(SCAN, "I/O Intr")
 # }
 
 # record(longout,"$(P)Ch$(CHAN)ThresholdHigh") {
 #     field(DTYP, "asynInt32")
-#     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $(THRS_ADDR_HIGH)")
+#     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
 #     field(PINI, "YES")
 #     info(autosaveFields_pass0, "VAL")
 # }
 
 # record(longin,"$(P)Ch$(CHAN)ThresholdHighRBV") {
 #     field(DTYP, "asynInt32")
-#     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $(THRS_ADDR_HIGH)")
+#     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
 #     field(SCAN, "I/O Intr")
 # }
 
@@ -212,8 +231,8 @@ record(longout,"$(P)EventTrigger") {
 
 record(longin,"$(P)DataFIFO") {
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PORT),0) A32D32 $(BASE)0")
-    field(SCAN, "I/O Intr")
+    field(INP,  "@asyn($(PORT),0) A32D32 $(BASE)0000")
+    field(SCAN, "1 second")
 }
 
 #########################################
@@ -231,20 +250,37 @@ record(longout,"$(P)SlideConstant") {
 # Almost Full Level (AAD)
 #########################################
 
-record(longout,"$(P)AlmostFullLevel") {
+record(longin,"$(P)AlmostFullLevel") {
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)1070")
-    field(PINI, "YES")
-    info(autosaveFields_pass0, "VAL")
+    field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1070")
+    field(SCAN, "I/O Intr")
+    #info(autosaveFields_pass0, "VAL")
 }
 
 #########################################
 # BAD - Buffer Almost Done
 #########################################
 
-record(longout,"$(P)BufferAlmostDone") {
+record(longin,"$(P)BufferAlmostDone") {
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)1072")
-    field(PINI, "YES")
-    info(autosaveFields_pass0, "VAL")
+    field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1072")
+    field(SCAN, "I/O Intr")
+    #info(autosaveFields_pass0, "VAL")
+}
+
+#########################################
+# Wrapper PV
+#########################################
+
+
+record(bo, "$(P)StartAcq") {
+    field(DESC, "Start acquisition")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),0)START_ACQ")
+}
+
+record(bo, "$(P)StopAcq") {
+    field(DESC, "Stop acquisition")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),0)STOP_ACQ")
 }

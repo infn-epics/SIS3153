@@ -10,7 +10,7 @@ LIBRARY_IOC += SIS3153Support
 # Compile and add code to the support library
 USR_CPPFLAGS += -Dunix
 SIS3153Support_SRCS += drvSIS3153.cpp
-
+SIS3153Support_SRCS += wrapperV695.cpp
 SIS3153Support_LIBS += SIS3150
 SIS3153Support_LIBS += SISLoader
 SIS3153Support_LIBS += asyn
@@ -21,12 +21,13 @@ PROD_IOC = SIS3153App
 
 # SIS3153App.dbd will be created and installed
 DBD += SIS3153App.dbd
+DBD += wrapperV695.dbd
 
 # SIS3153App.dbd will include these files:
 SIS3153App_DBD += base.dbd
 SIS3153App_DBD += asyn.dbd
 SIS3153App_DBD += SIS3153Support.dbd
-
+SIS3153App_DBD += wrapperV695.dbd
 # SIS3153App_registerRecordDeviceDriver.cpp derives from SIS3153.dbd
 SIS3153App_SRCS += SIS3153App_registerRecordDeviceDriver.cpp
 

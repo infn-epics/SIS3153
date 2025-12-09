@@ -232,8 +232,18 @@ record(longout,"$(P)EventTrigger") {
 record(longin,"$(P)DataFIFO") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D32 $(BASE)0000")
-    field(SCAN, "1 second")
+    field(SCAN, "I/O Intr")
 }
+
+record(waveform, "$(P):A32BLT32_DUMMY") {
+  field(DESC, "Forza creazione asynInt32Array")
+  field(DTYP, "asynInt32ArrayIn")
+  field(INP,  "@asyn($(PORT),0) A32BLT32 $(BASE)0000")
+  field(FTVL, "LONG")     # perché sono epicsInt32
+  field(NELM, "1024")     # numero di word max che vuoi supportare
+}
+
+
 
 #########################################
 # Slide Constant

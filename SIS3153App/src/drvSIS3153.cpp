@@ -10,76 +10,11 @@
  * Modified October 20, 2025
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <string>
-
-#include <iocsh.h>
-
-#include <asynPortDriver.h>
-
-#include <sis3150usb_vme.h>
-#include <sis3150usb_vme_calls.h>
-#include <sis3153ETH_vme_class.h>
-
-#include <epicsExport.h>
-
-// Connection types
-typedef enum {
-    CONNECTION_TYPE_USB,
-    CONNECTION_TYPE_ETHERNET
-} ConnectionType;
+#include "drvSIS3153.h"
 
 static const char *driverName="drvSIS3153";
 
-/* These are the drvInfo strings that are used to identify the parameters.
- * They are used by asyn clients, including standard asyn device support */
-#define P_A16D8_String                "A16D8"                  /* asynInt32,    r/w */
-#define P_A16D16_String               "A16D16"                 /* asynInt32,    r/w */
-#define P_A16D32_String               "A16D32"                 /* asynInt32,    r/w */
-#define P_A24D8_String                "A24D8"                  /* asynInt32,    r/w */
-#define P_A24D16_String               "A24D16"                 /* asynInt32,    r/w */
-#define P_A24D32_String               "A24D32"                 /* asynInt32,    r/w */
-#define P_A32D8_String                "A32D8"                  /* asynInt32,    r/w */
-#define P_A32D16_String               "A32D16"                 /* asynInt32,    r/w */
-#define P_A32D32_String               "A32D32"                 /* asynInt32,    r/w */
-
-
-class drvSIS3153 : public asynPortDriver {
-public:
-    drvSIS3153(const char *portName, const char *connectionType, const char *ipAddress);
-
-    /* These are the methods that we override from asynPortDriver */
-    virtual asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
-    virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
-    virtual asynStatus drvUserCreate(asynUser *pasynUser, const char *drvInfo,
-                                     const char **pptypeName, size_t *psize);
-    virtual asynStatus drvUserDestroy(asynUser *pasynUser);
-
-
-protected:
-    /** Values used for pasynUser->reason, and indexes into the parameter library. */
-    int P_A16D8;
-    int P_A16D16;
-    int P_A16D32;
-    int P_A24D8;
-    int P_A24D16;
-    int P_A24D32;
-    int P_A32D8;
-    int P_A32D16;
-    int P_A32D32;
-
-private:
-    ConnectionType connType_;
-    // USB members
-    struct SIS3150USB_Device_Struct devStruct_;
-    struct usb_dev_handle *devHandle_;
-    // Ethernet members
-    sis3153eth *ethDevice_;
-    char ipAddress_[32];
-};
-
+std::map<std::string, drvSIS3153*> drvTable;
 drvSIS3153::drvSIS3153(const char *portName, const char *connectionType, const char *ipAddress)
    : asynPortDriver(portName,
                     1, /* maxAddr */
@@ -105,6 +40,10 @@ drvSIS3153::drvSIS3153(const char *portName, const char *connectionType, const c
     createParam(P_A32D8_String,  asynParamInt32, &P_A32D8);
     createParam(P_A32D16_String, asynParamInt32, &P_A32D16);
     createParam(P_A32D32_String, asynParamInt32, &P_A32D32);
+    P_A32BLT32 = -1;
+    createParam(P_A32BLT32_String, asynParamInt32Array, &P_A32BLT32);
+    
+    printf("Driver crea PV array %s, index=%d\n", P_A32BLT32_String, P_A32BLT32);
 
     // Determine connection type
     if (strcmp(connectionType, "USB") == 0) {
@@ -174,6 +113,48 @@ drvSIS3153::drvSIS3153(const char *portName, const char *connectionType, const c
         return;
     }
 }
+
+asynStatus drvSIS3153::doBLT32Read(int addr, uint32_t* buffer, size_t nWords, unsigned int* got)
+{
+    int status = ethDevice_->vme_A32BLT32_read(addr, buffer, nWords, got);
+    return (status == 0) ? asynSuccess : asynError;
+}
+
+asynStatus drvSIS3153::readInt32Array(asynUser *pasynUser, epicsInt32 *value, size_t nElements,size_t *nIn)
+{
+    const char* functionName = "readInt32Array";
+    printf("Inside %s\n",functionName);
+    int function = pasynUser->reason;
+
+    if (function == P_A32BLT32)
+    {
+         /* Get the VME address which is in pasynUser->drvUser */
+        int addr = *(int *)pasynUser->drvUser;
+
+        unsigned int gotWords = 0;
+
+        int status = ethDevice_->vme_A32BLT32_read(
+                         addr,
+                         reinterpret_cast<unsigned int*>(value),
+                         nElements,
+                         &gotWords);
+
+        if(status != 0)
+        {
+            asynPrint(pasynUser, ASYN_TRACE_ERROR,
+                      "%s::%s BLT read error status=0x%x\n",
+                      driverName, functionName, status);
+            return asynError;
+        }
+
+        return asynSuccess;
+    }
+
+    // Tutto il resto passa alla base (default -> errore)
+    return asynPortDriver::readInt32Array(pasynUser, value, nElements,nIn);
+}
+
+
 
 asynStatus drvSIS3153::readInt32(asynUser *pasynUser, epicsInt32 *value)
 {
@@ -394,40 +375,57 @@ asynStatus drvSIS3153::writeInt32(asynUser *pasynUser, epicsInt32 value)
     return status ? asynError : asynSuccess;
 }
 
-/* asynDrvUser routines */
-asynStatus drvSIS3153::drvUserCreate(asynUser *pasynUser, const char *drvInfo,
-                                     const char **pptypeName, size_t *psize)
+
+
+
+asynStatus drvSIS3153::drvUserCreate(asynUser *pasynUser, 
+                                     const char *drvInfo,
+                                     const char **pptypeName,
+                                     size_t *psize)
 {
-    static const char *functionName="drvUserCreate";
+    // Caso: il drvInfo NON appartiene all’underlying
+    // SINTASSI underlying = "<ParamName> <Address>"
+    // Se non c’è spazio → non è dell’underlying → rifiutalo senza errori
+    if (!strchr(drvInfo, ' ')) {
+        static const char *underlyingNames[] = {
+        P_A16D8_String, P_A16D16_String, P_A16D32_String,
+        P_A24D8_String, P_A24D16_String, P_A24D32_String,
+        P_A32D8_String, P_A32D16_String, P_A32D32_String,
+        P_A32BLT32_String, // se l'hai definito
+        nullptr
+    };
+    for (const char **p = underlyingNames; *p; ++p) 
+    {
+        if (strcmp(drvInfo, *p) == 0) {
+            // è un parametro dell'underlying: lascia che la base lo risolva
+            return asynPortDriver::drvUserCreate(pasynUser, drvInfo, pptypeName, psize);
+        }
+    }
+        return asynError;   // lascia che il wrapper lo gestisca
+    }
 
-    /* We are passed a string of the format "AddressMode Address"
-     * We convert the address string to an int and allocate and store it in pasynUser->drvUser.
-     * We remove " Address" from the string and call the base class. */
-
+    // DA QUI IN POI: sintassi valida per underlying
     std::string drvString = drvInfo;
     size_t pos = drvString.find(" ");
-    if (pos != std::string::npos) {
-        std::string addrString = drvString.substr(pos+1);
-        int *pAddr = new(int);
-        try {
-            *pAddr = (int)std::stol(addrString, 0, 0);
-        }
-        catch (std::exception &e) {
-            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s::%s invalid string, %s\n",
-                driverName, functionName, e.what());
-            return asynError;
-        }
-        pasynUser->drvUser = pAddr;
-    } else {
-        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-            "%s::%s Error, expected underscore in drvInfo string\n",
-            driverName, functionName);
+
+    std::string addrString = drvString.substr(pos + 1);
+    int *pAddr = new(int);
+
+    try {
+        *pAddr = (int)std::stol(addrString, 0, 0);
+    } catch (...) {
         return asynError;
     }
-    std::string newDrvInfo = drvString.substr(0,pos);
-    return asynPortDriver::drvUserCreate(pasynUser, newDrvInfo.c_str(), pptypeName, psize);
+
+    pasynUser->drvUser = pAddr;
+
+    std::string newDrvInfo = drvString.substr(0, pos);
+    return asynPortDriver::drvUserCreate(pasynUser, newDrvInfo.c_str(),
+                                         pptypeName, psize);
 }
+
+
+
 
 asynStatus drvSIS3153::drvUserDestroy(asynUser *pasynUser)
 {
@@ -454,7 +452,8 @@ int drvSIS3153Configure(const char *portName)
   * \param[in] ipAddress The IP address of the SIS3153 device (e.g., "192.168.1.100") */
 int drvSIS3153EthConfigure(const char *portName, const char *ipAddress)
 {
-    new drvSIS3153(portName, "ETHERNET", ipAddress);
+    drvSIS3153 *drv = new drvSIS3153(portName, "ETHERNET", ipAddress);
+    drvTable[portName] = drv;
     return(asynSuccess);
 }
 

@@ -20,10 +20,12 @@ SIS3153App_registerRecordDeviceDriver pdbbase
 ###############################################
 
 # For Ethernet connection (comment out USB and uncomment below):
+#asynReport 5
 drvSIS3153EthConfigure("VME1", "192.168.189.92")
 V965WrapperConfigure("V965Port", "VME1")
+#V965WrapperConfigure("V792Port", "VME1")
 
-#asynReport 1, V965Port
+#asynReport 5, V965Port
 #asynReport 1, VME1
 
 #asynSetTraceMask V965Port -1 0x1F
@@ -34,7 +36,7 @@ V965WrapperConfigure("V965Port", "VME1")
 # CAEN V965 QDC (16 channels)
 # Base address: 0xb7640000 from btf-conf.txt
 dbLoadRecords("../../db/CAEN965.template", "P=BTF:QDC965:,PORT=V965Port,BASE=0xee00,CHAN=0")
-#asynReport 5
+
 
 # ###############################################
 # # IOC Initialization

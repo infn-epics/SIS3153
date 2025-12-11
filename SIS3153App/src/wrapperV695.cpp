@@ -238,8 +238,10 @@ asynStatus V965Wrapper::drvUserCreate(asynUser *pasynUser,
         } else {
             printf("ATTENZIONE: drvInfo non contiene indirizzo\n");
         }
+        printf("paramWaveform_ = %d\n", paramWaveform_);
+        printf("PV reason = %d\n", pasynUser->reason);
 
-        if (pptypeName) *pptypeName = "asynInt32Array"; // o la stringa corretta nella tua asyn
+        if (pptypeName) *pptypeName = drvInfo; // o la = drvInfo; stringa corretta nella tua asyn
         if (psize) *psize = sizeof(epicsInt32);
 
         printf("drvInfo %s, %s: mapped %s -> reason=%d addr=%p\n",drvInfo,
@@ -323,7 +325,7 @@ void V965Wrapper::acquisitionLoop()
         epicsInt32 value;
         
         if (fifoUser_ && pInt32Iface_) {
-            printf("%d ",++cnt);
+            //printf("%d ",++cnt);
             pInt32Iface_->read(pInt32DrvPvt_, fifoUser_, &value);
             
             int tipo=(value & 0x7000000) >> 24;
@@ -338,34 +340,37 @@ void V965Wrapper::acquisitionLoop()
                 }
                 case 2 : {
                     numEvents = (value & 0x3F00) >> 8;
-                    printf("HEADER. EVENTS: %d\n",numEvents);
+                    //printf("HEADER. words: %d\n",numEvents);
                     
                     unsigned int gotWords = 0;
                     
                     asynStatus st= underlyingDriver_->doBLT32Read(addr, reinterpret_cast<unsigned int*>(bltBuffer), numEvents, &gotWords);
-                     printf("read %d word\n",gotWords);                  
+                    // printf("read %d word\n",gotWords);                  
                     if (st == asynSuccess && gotWords > 0)
                     {
-                        
+                        //setIntegerParam(paramDataReady_, 1);   // paramDataReady_ è un int usato per debug/testing
+                        //setIntegerParam(paramWaveform_, (int)gotWords); 
+                        //printf("Callback: param=%d addr=%x got=%zu\n",paramWaveform_, addr, gotWords);
                         doCallbacksInt32Array(bltBuffer,gotWords,paramWaveform_,0); 
                         //setTimeStamp();
-                        callParamCallbacks();
+                        //callParamCallbacks();
+                       
                     }
-                    epicsThreadSleep(0.1);
+                    epicsThreadSleep(0.001);
                     headers++;
                     datawc=0;
                     break;
                 }
                 case 4 : {
                     evCounterNum= value & 0xFFFFFF;
-                    printf("EOB eventCounter %d \n",evCounterNum);
+                   // printf("EOB eventCounter %d \n",evCounterNum);
                     eob++;
                     datawc=0;
                     break;
                 }
                 case 6 :{
-                    printf("Not valid datum. Maybe FIFO empty\n");
-                    epicsThreadSleep(0.1);
+                    //printf("Not valid datum. Maybe FIFO empty\n");
+                    epicsThreadSleep(0.001);
                     break;
                 }
                 default: printf("ERROR: type %d\n",tipo); break;

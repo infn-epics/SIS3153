@@ -1,29 +1,21 @@
 # Substitution file for CAEN V965 - 16 channel QDC
 # Usage: dbLoadTemplate("CAEN965_channels.substitutions", "P=XXX:,PORT=VME1,BASE=0xB7640000")
-
-file "CAEN965.template" {
-    pattern { P,           PORT,    BASE }
-            { "$(P)",      "$(PORT)", "$(BASE)" }
-}
-
-# Channel thresholds for 16 channels
-# Threshold addresses: 0x1080 + (4 * channel) for low, +2 for high
-file "CAEN965.template" {
-    pattern { P,           PORT,    BASE,  CHAN,  THRS_ADDR_LOW,  THRS_ADDR_HIGH }
-            { "$(P)",      "$(PORT)", "$(BASE)", "0",   "0x1080",       "0x1082" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "1",   "0x1084",       "0x1086" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "2",   "0x1088",       "0x108A" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "3",   "0x108C",       "0x108E" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "4",   "0x1090",       "0x1092" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "5",   "0x1094",       "0x1096" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "6",   "0x1098",       "0x109A" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "7",   "0x109C",       "0x109E" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "8",   "0x10A0",       "0x10A2" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "9",   "0x10A4",       "0x10A6" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "10",  "0x10A8",       "0x10AA" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "11",  "0x10AC",       "0x10AE" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "12",  "0x10B0",       "0x10B2" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "13",  "0x10B4",       "0x10B6" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "14",  "0x10B8",       "0x10BA" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "15",  "0x10BC",       "0x10BE" }
+file "../../db/CAEN965.template" {
+    pattern { CHAN,  THRS_ADDR_LOW,  THRS_ADDR_HIGH }
+            { "0",   "0x1080",       "0x1082" }
+            { "1",   "0x1084",       "0x1086" }
+            { "2",   "0x1088",       "0x108A" }
+            { "3",   "0x108C",       "0x108E" }
+            { "4",   "0x1090",       "0x1092" }
+            { "5",   "0x1094",       "0x1096" }
+            { "6",   "0x1098",       "0x109A" }
+            { "7",   "0x109C",       "0x109E" }
+            { "8",   "0x10A0",       "0x10A2" }
+            { "9",   "0x10A4",       "0x10A6" }
+            { "10",  "0x10A8",       "0x10AA" }
+            { "11",  "0x10AC",       "0x10AE" }
+            { "12",  "0x10B0",       "0x10B2" }
+            { "13",  "0x10B4",       "0x10B6" }
+            { "14",  "0x10B8",       "0x10BA" }
+            { "15",  "0x10BC",       "0x10BE" }
 }

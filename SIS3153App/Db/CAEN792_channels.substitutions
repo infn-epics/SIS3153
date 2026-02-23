@@ -1,45 +1,42 @@
 # Substitution file for CAEN V792 - 32 channel QDC
 # Usage: dbLoadTemplate("CAEN792_channels.substitutions", "P=XXX:,PORT=VME1,BASE=0xEE540000")
 
-file "CAEN792.template" {
-    pattern { P,           PORT,    BASE }
-            { "$(P)",      "$(PORT)", "$(BASE)" }
-}
+
 
 # Channel thresholds for 32 channels
 # Threshold addresses: 0x1080 + (4 * channel)
-file "CAEN792.template" {
-    pattern { P,           PORT,    BASE,  CHAN,  THRS_ADDR }
-            { "$(P)",      "$(PORT)", "$(BASE)", "0",   "0x1080" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "1",   "0x1084" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "2",   "0x1088" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "3",   "0x108C" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "4",   "0x1090" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "5",   "0x1094" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "6",   "0x1098" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "7",   "0x109C" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "8",   "0x10A0" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "9",   "0x10A4" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "10",  "0x10A8" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "11",  "0x10AC" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "12",  "0x10B0" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "13",  "0x10B4" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "14",  "0x10B8" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "15",  "0x10BC" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "16",  "0x10C0" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "17",  "0x10C4" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "18",  "0x10C8" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "19",  "0x10CC" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "20",  "0x10D0" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "21",  "0x10D4" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "22",  "0x10D8" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "23",  "0x10DC" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "24",  "0x10E0" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "25",  "0x10E4" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "26",  "0x10E8" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "27",  "0x10EC" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "28",  "0x10F0" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "29",  "0x10F4" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "30",  "0x10F8" }
-            { "$(P)",      "$(PORT)", "$(BASE)", "31",  "0x10FC" }
+file "../../db/CAEN792.template" {
+    pattern {  CHAN,  THRS_ADDR }
+            {  "0",   "0x1080" }
+            {  "1",   "0x1084" }
+            {  "2",   "0x1088" }
+            {  "3",   "0x108C" }
+            {  "4",   "0x1090" }
+            {  "5",   "0x1094" }
+            {  "6",   "0x1098" }
+            {  "7",   "0x109C" }
+            {  "8",   "0x10A0" }
+            {  "9",   "0x10A4" }
+            {  "10",  "0x10A8" }
+            {  "11",  "0x10AC" }
+            {  "12",  "0x10B0" }
+            {  "13",  "0x10B4" }
+            {  "14",  "0x10B8" }
+            {  "15",  "0x10BC" }
+            {  "16",  "0x10C0" }
+            {  "17",  "0x10C4" }
+            {  "18",  "0x10C8" }
+            {  "19",  "0x10CC" }
+            {  "20",  "0x10D0" }
+            {  "21",  "0x10D4" }
+            {  "22",  "0x10D8" }
+            {  "23",  "0x10DC" }
+            {  "24",  "0x10E0" }
+            {  "25",  "0x10E4" }
+            {  "26",  "0x10E8" }
+            {  "27",  "0x10EC" }
+            {  "28",  "0x10F0" }
+            {  "29",  "0x10F4" }
+            {  "30",  "0x10F8" }
+            {  "31",  "0x10FC" }
 }

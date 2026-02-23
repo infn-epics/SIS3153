@@ -23,7 +23,7 @@ SIS3153App_registerRecordDeviceDriver pdbbase
 #asynReport 5
 drvSIS3153EthConfigure("VME1", "192.168.189.92")
 V965WrapperConfigure("V965Port", "VME1")
-#V965WrapperConfigure("V792Port", "VME1")
+V965WrapperConfigure("V792Port", "VME1")
 
 #asynReport 5, V965Port
 #asynReport 1, VME1
@@ -34,9 +34,12 @@ V965WrapperConfigure("V965Port", "VME1")
 ###############################################
 
 # CAEN V965 QDC (16 channels)
-# Base address: 0xb7640000 from btf-conf.txt
-dbLoadRecords("../../db/CAEN965.template", "P=BTF:QDC965:,PORT=V965Port,BASE=0xee00,CHAN=0")
 
+dbLoadTemplate("../../db/CAEN965_channels.substitutions", "P=BTF:QDC965:,PORT=V965Port,BASE=0xee00")
+dbLoadTemplate("../../db/CAEN792_channels.substitutions", "P=BTF:QDC792:,PORT=V792Port,BASE=0xaa00")
+
+#scaler
+#dbLoadRecords("../../db/CAENSCALER.template", "P=BTF:SCALER:,PORT=VME1,BASE=0x3838")
 
 # ###############################################
 # # IOC Initialization

@@ -1,7 +1,7 @@
 # Database for CAEN V965 Dual Range QDC (16 channels)
-# Base address is passed as $(BASE)  macro
-# Port name is $(PORT)
-# Prefix is $(P)
+# Base address is passed as BASE  macro
+# Port name is PORT
+# Prefix is P
 
 #########################################
 # Board Identification Registers
@@ -199,31 +199,31 @@ record(longout,"$(P)EventTrigger") {
 # Thresholds (16 channels, Low and High)
 #########################################
 
-# record(longout,"$(P)Ch$(CHAN)ThresholdLow") {
-#     field(DTYP, "asynInt32")
-#     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $  (THRS_ADDR_LOW)")
-#     field(PINI, "YES")
-#     info(autosaveFields_pass0, "VAL")
-# }
+ record(longout,"$(P)Ch$(CHAN)ThresholdLow") {
+     field(DTYP, "asynInt32")
+     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $  (THRS_ADDR_LOW)")
+     field(PINI, "YES")
+     info(autosaveFields_pass0, "VAL")
+ }
 
-# record(longin,"$(P)Ch$(CHAN)ThresholdLowRBV") {
-#     field(DTYP, "asynInt32")
-#     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $   (THRS_ADDR_LOW)")
-#     field(SCAN, "I/O Intr")
-# }
+ record(longin,"$(P)Ch$(CHAN)ThresholdLowRBV") {
+     field(DTYP, "asynInt32")
+     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $   (THRS_ADDR_LOW)")
+     field(SCAN, "I/O Intr")
+ }
 
-# record(longout,"$(P)Ch$(CHAN)ThresholdHigh") {
-#     field(DTYP, "asynInt32")
-#     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
-#     field(PINI, "YES")
-#     info(autosaveFields_pass0, "VAL")
-# }
+ record(longout,"$(P)Ch$(CHAN)ThresholdHigh") {
+     field(DTYP, "asynInt32")
+     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
+     field(PINI, "YES")
+     info(autosaveFields_pass0, "VAL")
+ }
 
-# record(longin,"$(P)Ch$(CHAN)ThresholdHighRBV") {
-#     field(DTYP, "asynInt32")
-#     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
-#     field(SCAN, "I/O Intr")
-# }
+ record(longin,"$(P)Ch$(CHAN)ThresholdHighRBV") {
+     field(DTYP, "asynInt32")
+     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
+     field(SCAN, "I/O Intr")
+ }
 
 #########################################
 # Data Readout (32-bit FIFO at address 0)

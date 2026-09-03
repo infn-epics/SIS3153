@@ -44,6 +44,7 @@ SIS3153App_LIBS += asyn
 # Must come after SIS libraries that depend on it
 # Using explicit path to ensure correct version is linked
 USR_SYS_LIBS += usb
+USR_SYS_LIBS += memcached
 USR_LDFLAGS += -Wl,--no-as-needed
 
 # Link QSRV (pvAccess Server) if available

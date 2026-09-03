@@ -1,9 +1,13 @@
 #ifndef V965_WRAPPER_H
 #define V965_WRAPPER_H
-
+#include <libmemcached/memcached.h>
 #include <asynPortDriver.h>
 #include "drvSIS3153.h"
 #include <atomic>
+#include <vector>
+#include <iostream>
+#include <cstdint>
+
 // Parametri locali del wrapper
 #define P_StartAcqString "START_ACQ"
 #define P_StopAcqString  "STOP_ACQ"
@@ -23,13 +27,13 @@ public:
                              const char **pptypeName, size_t *psize) override;
     
 
-
+    std::vector<uint32_t> readScalerValue();
     void startAcquisition();
     void stopAcquisition();
     void acquisitionLoop();
     static void acquisitionLoopC(void *arg);
     bool isWrapperInfo(const char* drvInfo);
-    
+    void pushOnMemcached(const std::vector<uint32_t>& data);
 
 private:
     
@@ -69,6 +73,8 @@ private:
     int paramStopAcq_;
     int paramDataReady_;
     int paramWaveform_;
+    int paramA32D32_;
+    int paramA32D16_;
 };
 
 #endif

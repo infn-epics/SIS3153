@@ -138,7 +138,8 @@ asynStatus drvSIS3153::readInt32Array(asynUser *pasynUser, epicsInt32 *value, si
                          reinterpret_cast<unsigned int*>(value),
                          nElements,
                          &gotWords);
-
+        // gotWords è il numero effettivo di elementi scritti in value.
+        *nIn = static_cast<size_t>(gotWords);
         if(status != 0)
         {
             asynPrint(pasynUser, ASYN_TRACE_ERROR,
@@ -146,7 +147,19 @@ asynStatus drvSIS3153::readInt32Array(asynUser *pasynUser, epicsInt32 *value, si
                       driverName, functionName, status);
             return asynError;
         }
+         // Controllo difensivo contro un risultato incoerente della libreria.
+        if (*nIn > nElements) {
+          *nIn = nElements;
 
+          epicsSnprintf(
+              pasynUser->errorMessage,
+              pasynUser->errorMessageSize,
+              "%s::%s invalid BLT word count",
+              driverName,
+              functionName);
+
+          return asynError;
+      }
         return asynSuccess;
     }
 

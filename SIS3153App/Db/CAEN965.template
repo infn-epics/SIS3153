@@ -199,12 +199,12 @@ record(longout,"$(P)EventTrigger") {
 # Thresholds (16 channels, Low and High)
 #########################################
 
- record(longout,"$(P)Ch$(CHAN)ThresholdLow") {
-     field(DTYP, "asynInt32")
-     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $  (THRS_ADDR_LOW)")
-     field(PINI, "YES")
-     info(autosaveFields_pass0, "VAL")
- }
+# record(longout,"$(P)Ch$(CHAN)ThresholdLow") {
+#     field(DTYP, "asynInt32")
+#     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $  (THRS_ADDR_LOW)")
+#     field(PINI, "YES")
+#     info(autosaveFields_pass0, "VAL")
+# }
 
  record(longin,"$(P)Ch$(CHAN)ThresholdLowRBV") {
      field(DTYP, "asynInt32")
@@ -212,12 +212,12 @@ record(longout,"$(P)EventTrigger") {
      field(SCAN, "I/O Intr")
  }
 
- record(longout,"$(P)Ch$(CHAN)ThresholdHigh") {
-     field(DTYP, "asynInt32")
-     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
-     field(PINI, "YES")
-     info(autosaveFields_pass0, "VAL")
- }
+ #record(longout,"$(P)Ch$(CHAN)ThresholdHigh") {
+ #    field(DTYP, "asynInt32")
+ #    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
+ #    field(PINI, "YES")
+ #    info(autosaveFields_pass0, "VAL")
+ #}
 
  record(longin,"$(P)Ch$(CHAN)ThresholdHighRBV") {
      field(DTYP, "asynInt32")

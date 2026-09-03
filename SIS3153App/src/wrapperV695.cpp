@@ -20,7 +20,7 @@
 V965Wrapper::V965Wrapper(const char *portName, const char *underlyingPortName,drvSIS3153* underlyingDriver)
     : asynPortDriver(portName,
                      1, // maxAddr
-                     4, // nParams
+                     6, // nParams
                      asynInt32Mask | asynInt32ArrayMask | asynDrvUserMask,
                      asynInt32Mask | asynInt32ArrayMask,
                      0, 1, 0, 0),
@@ -40,6 +40,8 @@ V965Wrapper::V965Wrapper(const char *portName, const char *underlyingPortName,dr
     createParam(P_StopAcqString,  asynParamInt32, &paramStopAcq_);
     createParam(P_DataReadyString, asynParamInt32, &paramDataReady_);
     createParam("A32BLT32",  asynParamInt32Array, &paramWaveform_);
+    createParam("A32D32",  asynParamInt32, &paramA32D32_);
+    createParam("A32D16",  asynParamInt32, &paramA32D16_);
     
     // Ottieni asynUser per il port sottostante
     underlyingUser_ = pasynManager->createAsynUser(nullptr, nullptr);
@@ -312,24 +314,74 @@ void V965Wrapper::stopAcquisition()
     printf(">>> Acquisition stopped\n");
 }
 
+std::vector<uint32_t> V965Wrapper::readScalerValue()
+{
+    
+    std::vector<uint32_t> counters(32, 0);
+    asynUser *scalerUser_ = pasynManager->createAsynUser(nullptr, nullptr);
+    pasynManager->connectDevice( scalerUser_, underlyingPortName_, 0);
+    //printf("Before create scalerUser=%p reason=%d drvUser=%p\n", scalerUser_, scalerUser_->reason, scalerUser_->drvUser);
+    //asynStatus st =  pDrvUserIface_->create( pDrvUserDrvPvt_,scalerUser_, "A32D32 0xee001024",nullptr, nullptr);
+    asynStatus st =  pDrvUserIface_->create( pDrvUserDrvPvt_,scalerUser_, "A32D32 0x38000004",nullptr, nullptr);
+    epicsInt32 value = 0;
+    
+    scalerUser_->reason = paramA32D32_;
+    //printf("AFTER scalerUser= %p drvUser=%p reason=%d \n", scalerUser_, scalerUser_->drvUser, scalerUser_->reason);
+    //asynStatus st= underlyingDriver_->doBLT32Read(addr, reinterpret_cast<unsigned int*>(bltBuffer), numEvents, &gotWords);
+    int kk=pInt32Iface_->read( pInt32DrvPvt_, scalerUser_, &value);
+
+    printf("Scaler value = 0x%08X\nReturn code = %d\n", (unsigned)value, kk);
+    
+    return counters;
+}
+void V965Wrapper::pushOnMemcached(const std::vector<uint32_t>& data)
+{
+
+
+    memcached_st *memc = memcached_create(NULL);
+
+    memcached_server_st *servers = NULL;
+    servers = memcached_server_list_append(servers, "127.0.0.1", 11211, NULL);
+    memcached_server_push(memc, servers);
+    const char *key = "mykey";
+    memcached_return rc = memcached_set(
+        memc,
+        key,
+        strlen(key),
+        reinterpret_cast<const char*>(data.data()),
+        data.size() * sizeof(uint32_t),
+        0,      // expiration
+        0       // flags
+    );
+
+    if (rc != MEMCACHED_SUCCESS) {
+         printf("Errore: %s\n", memcached_strerror(memc, rc));
+    }
+    memcached_server_list_free(servers);
+    memcached_free(memc);
+}
 void V965Wrapper::acquisitionLoop()
 {
+    
+        
     printf(">>> Acquisition loop started\n");
     threadIsRunning_ = true;
-    int headers=0,eob=0,cnt=0;
+    int headers=0,eob=0;
     int datawc=0;
+    
     unsigned int addr = *(int*)fifoUserBLT_->drvUser;
     while (acquiring_.load()) {
-        
+        std::vector<uint32_t> scalerValues = readScalerValue();
+        //epicsThreadSleep(2.0);
         // 1. Leggi dati dal QDC tramite il driver sottostante
         epicsInt32 value;
-        
+        unsigned int gotWords=0;
         if (fifoUser_ && pInt32Iface_) {
             //printf("%d ",++cnt);
             pInt32Iface_->read(pInt32DrvPvt_, fifoUser_, &value);
             
             int tipo=(value & 0x7000000) >> 24;
-            int evCounterNum, numEvents=0;
+            int evCounterNum=0, numEvents=0;
             //printf("read %x tipo ",tipo);
             switch(tipo)
             {
@@ -342,7 +394,7 @@ void V965Wrapper::acquisitionLoop()
                     numEvents = (value & 0x3F00) >> 8;
                     //printf("HEADER. words: %d\n",numEvents);
                     
-                    unsigned int gotWords = 0;
+                    gotWords = 0;
                     
                     asynStatus st= underlyingDriver_->doBLT32Read(addr, reinterpret_cast<unsigned int*>(bltBuffer), numEvents, &gotWords);
                     // printf("read %d word\n",gotWords);                  
@@ -375,7 +427,20 @@ void V965Wrapper::acquisitionLoop()
                 }
                 default: printf("ERROR: type %d\n",tipo); break;
             }
-                       
+                   
+            if (gotWords > 0) 
+            {
+                
+                std::vector<uint32_t> result;
+                result.reserve(scalerValues.size() + gotWords);  // evita riallocazioni
+                result.insert(result.end(), scalerValues.begin(), scalerValues.end());
+                result.insert(result.end(), bltBuffer, bltBuffer + gotWords); 
+                for (uint32_t x : result) {
+                    std::cout << x << " ";
+                }
+                std::cout << std::endl << "Size: " << result.size() << std::endl; 
+                pushOnMemcached(result);       
+            }
             // Qui puoi fare buffering dei valori in parametri EPICS, array, ecc.
             //callParamCallbacks();  // Notifica i record collegati
             

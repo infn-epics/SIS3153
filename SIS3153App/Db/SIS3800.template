@@ -1,0 +1,33 @@
+# Database for VME access to  scaler
+# It only uses the A32 address space
+
+record(longin,"$(P)BoardIdentification") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0) A32D32 $(BASE)0004")
+    field(SCAN, "1 second")
+}
+
+record(longin,"$(P)Counter0") {
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0) A32D32 $(BASE)0280")
+    field(SCAN, "1 second")
+}
+record(longout,"$(P)Reset") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)0060")
+}
+record(longout,"$(P)EnableCounter") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),0) A32D32 $(BASE)0028")
+}
+record(longout,"$(P)DisableCounter") {
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),0) A32D32 $(BASE)002C")
+}
+
+
+#record(longin,"$(P)Manufacturer") {
+#    field(DTYP, "asynInt32")
+#    field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)0028")
+#    field(SCAN, "1 second")
+#}

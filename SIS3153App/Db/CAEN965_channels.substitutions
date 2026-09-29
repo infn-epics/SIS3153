@@ -1,21 +1,23 @@
-# Substitution file for CAEN V965 - 16 channel QDC
-# Usage: dbLoadTemplate("CAEN965_channels.substitutions", "P=XXX:,PORT=VME1,BASE=0xB7640000")
-file "../../db/CAEN965.template" {
-    pattern { CHAN,  THRS_ADDR_LOW,  THRS_ADDR_HIGH }
-            { "0",   "0x1080",       "0x1082" }
-            { "1",   "0x1084",       "0x1086" }
-            { "2",   "0x1088",       "0x108A" }
-            { "3",   "0x108C",       "0x108E" }
-            { "4",   "0x1090",       "0x1092" }
-            { "5",   "0x1094",       "0x1096" }
-            { "6",   "0x1098",       "0x109A" }
-            { "7",   "0x109C",       "0x109E" }
-            { "8",   "0x10A0",       "0x10A2" }
-            { "9",   "0x10A4",       "0x10A6" }
-            { "10",  "0x10A8",       "0x10AA" }
-            { "11",  "0x10AC",       "0x10AE" }
-            { "12",  "0x10B0",       "0x10B2" }
-            { "13",  "0x10B4",       "0x10B6" }
-            { "14",  "0x10B8",       "0x10BA" }
-            { "15",  "0x10BC",       "0x10BE" }
+# Substitution file for the 16 physical channels of a CAEN V965.
+# P, PORT and BASE are supplied by dbLoadTemplate().  Address suffixes do not
+# include 0x because the template concatenates them with BASE (e.g. 0xee00 +
+# 10A0 -> 0xee0010A0).
+file "../../db/CAEN965_channel.template" {
+    pattern { CHAN, THRS_ADDR_HIGH, THRS_ADDR_LOW }
+            { "0",  "1080",         "1082" }
+            { "1",  "1084",         "1086" }
+            { "2",  "1088",         "108A" }
+            { "3",  "108C",         "108E" }
+            { "4",  "1090",         "1092" }
+            { "5",  "1094",         "1096" }
+            { "6",  "1098",         "109A" }
+            { "7",  "109C",         "109E" }
+            { "8",  "10A0",         "10A2" }
+            { "9",  "10A4",         "10A6" }
+            { "10", "10A8",         "10AA" }
+            { "11", "10AC",         "10AE" }
+            { "12", "10B0",         "10B2" }
+            { "13", "10B4",         "10B6" }
+            { "14", "10B8",         "10BA" }
+            { "15", "10BC",         "10BE" }
 }

@@ -116,8 +116,23 @@ drvSIS3153::drvSIS3153(const char *portName, const char *connectionType, const c
 
 asynStatus drvSIS3153::doBLT32Read(int addr, uint32_t* buffer, size_t nWords, unsigned int* got)
 {
-    int status = ethDevice_->vme_A32BLT32_read(addr, buffer, nWords, got);
-    return (status == 0) ? asynSuccess : asynError;
+    if (!buffer || !got) {
+        printf("BLT ERROR invalid argument buffer=%p got=%p\n",
+               static_cast<void*>(buffer), static_cast<void*>(got));
+        return asynError;
+    }
+
+    *got = 0;
+    int status = ethDevice_->vme_A32BLT32_read(
+        addr, buffer, nWords, got);
+
+    if (status != 0 || *got != nWords) {
+        printf(
+            "BLT ERROR status=0x%X requested=%zu got=%u\n",
+            status, nWords, *got);
+    }
+
+    return (status == 0 && *got == nWords) ? asynSuccess : asynError;
 }
 
 asynStatus drvSIS3153::readInt32Array(asynUser *pasynUser, epicsInt32 *value, size_t nElements,size_t *nIn)
@@ -171,6 +186,11 @@ asynStatus drvSIS3153::readInt32Array(asynUser *pasynUser, epicsInt32 *value, si
 
 asynStatus drvSIS3153::readInt32(asynUser *pasynUser, epicsInt32 *value)
 {
+    if (!pasynUser || !value || !pasynUser->drvUser) {
+        return asynError;
+    }
+
+    *value = 0;
     int function = pasynUser->reason;
     int status = 0;
     int addr;
@@ -184,93 +204,93 @@ asynStatus drvSIS3153::readInt32(asynUser *pasynUser, epicsInt32 *value)
 
     if (connType_ == CONNECTION_TYPE_USB) {
         if (function == P_A16D8) {
-            u_int8_t vme_data;
+            u_int8_t vme_data = 0;
             status = vme_A16D8_read(devHandle_, addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A16D16) {
-            u_int16_t vme_data;
+            u_int16_t vme_data = 0;
             status = vme_A16D16_read(devHandle_, addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A16D32) {
-            u_int32_t vme_data;
+            u_int32_t vme_data = 0;
             status = vme_A16D32_read(devHandle_, addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A24D8) {
-            u_int8_t vme_data;
+            u_int8_t vme_data = 0;
             status = vme_A24D8_read(devHandle_, addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A24D16) {
-            u_int16_t vme_data;
+            u_int16_t vme_data = 0;
             status = vme_A24D16_read(devHandle_, addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A24D32) {
-            u_int32_t vme_data;
+            u_int32_t vme_data = 0;
             status = vme_A24D32_read(devHandle_, addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A32D8) {
-            u_int8_t vme_data;
+            u_int8_t vme_data = 0;
             status = vme_A32D8_read(devHandle_, addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A32D16) {
-            u_int16_t vme_data;
+            u_int16_t vme_data = 0;
             status = vme_A32D16_read(devHandle_, addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A32D32) {
-            u_int32_t vme_data;
+            u_int32_t vme_data = 0;
             status = vme_A32D32_read(devHandle_, addr, &vme_data);
             *value = vme_data;
         }
     } else { // CONNECTION_TYPE_ETHERNET
         if (function == P_A16D8) {
-            u_int8_t vme_data;
+            u_int8_t vme_data = 0;
             status = ethDevice_->vme_A16D8_read(addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A16D16) {
-            u_int16_t vme_data;
+            u_int16_t vme_data = 0;
             status = ethDevice_->vme_A16D16_read(addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A16D32) {
-            u_int32_t vme_data;
+            u_int32_t vme_data = 0;
             status = ethDevice_->vme_A16D32_read(addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A24D8) {
-            u_int8_t vme_data;
+            u_int8_t vme_data = 0;
             status = ethDevice_->vme_A24D8_read(addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A24D16) {
-            u_int16_t vme_data;
+            u_int16_t vme_data = 0;
             status = ethDevice_->vme_A24D16_read(addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A24D32) {
-            u_int32_t vme_data;
+            u_int32_t vme_data = 0;
             status = ethDevice_->vme_A24D32_read(addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A32D8) {
-            u_int8_t vme_data;
+            u_int8_t vme_data = 0;
             status = ethDevice_->vme_A32D8_read(addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A32D16) {
-            u_int16_t vme_data;
+            u_int16_t vme_data = 0;
             status = ethDevice_->vme_A32D16_read(addr, &vme_data);
             *value = vme_data;
         }
         else if (function == P_A32D32) {
-            u_int32_t vme_data;
+            u_int32_t vme_data = 0;
             status = ethDevice_->vme_A32D32_read(addr, &vme_data);
             *value = vme_data;
         }
@@ -278,8 +298,8 @@ asynStatus drvSIS3153::readInt32(asynUser *pasynUser, epicsInt32 *value)
 
     if (status)
         epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize,
-                  "%s:%s: status=%d, function=%d, name=%s, addr=0x%x, value=%d",
-                  driverName, functionName, status, function, paramName, addr, *value);
+                  "%s:%s: status=0x%X, function=%d, name=%s, addr=0x%x",
+                  driverName, functionName, status, function, paramName, addr);
     //else
         asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
               "%s:%s: function=%d, name=%s, status=%d, addr=0x%x, value=%d\n",

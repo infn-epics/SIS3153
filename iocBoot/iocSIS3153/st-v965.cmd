@@ -39,6 +39,7 @@ V965WrapperConfigure("V965Port", "VME1")
 
 # CAEN V965 QDC (16 channels)
 
+dbLoadRecords("../../db/CAEN965.template", "P=BTF:QDC965:,PORT=V965Port,BASE=0xee00")
 dbLoadTemplate("../../db/CAEN965_channels.substitutions", "P=BTF:QDC965:,PORT=V965Port,BASE=0xee00")
 
 
@@ -47,4 +48,8 @@ dbLoadTemplate("../../db/CAEN965_channels.substitutions", "P=BTF:QDC965:,PORT=V9
 
 
 iocInit
-
+# An IOC restart does not reset the physical QDC.  Pulse Clear Data to discard
+# any partial event left in the FIFO by a crash, then restore the normal mode.
+dbpf BTF:QDC965:BitSet2 4
+dbpf BTF:QDC965:BitClear2 4
+dbpf BTF:QDC965:BitSet2 24

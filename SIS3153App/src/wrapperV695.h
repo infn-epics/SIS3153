@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <cstdint>
+#include <string>
 
 // Parametri locali del wrapper
 #define P_StartAcqString "START_ACQ"
@@ -25,15 +26,18 @@ public:
     asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value) override;
     asynStatus drvUserCreate(asynUser *pasynUser, const char *drvInfo,
                              const char **pptypeName, size_t *psize) override;
+    asynStatus drvUserDestroy(asynUser *pasynUser) override;
     
 
-    std::vector<uint32_t> readScalerValue();
+    std::vector<uint32_t> readScalerValue(const std::string& addr = std::string());
     void startAcquisition();
     void stopAcquisition();
     void acquisitionLoop();
     static void acquisitionLoopC(void *arg);
+    void ScalerDiagnostic();
     bool isWrapperInfo(const char* drvInfo);
     void pushOnMemcached(const std::vector<uint32_t>& data);
+    void publishDiagnostics();
 
 private:
     
@@ -67,7 +71,7 @@ private:
     epicsThreadId acquisitionThreadId_;
     epicsEventId stopEvent_;
     std::atomic<bool> acquiring_;
-    bool threadIsRunning_;
+    std::atomic<bool> threadIsRunning_{false};
     // Parametri locali
     int paramStartAcq_;
     int paramStopAcq_;
@@ -75,6 +79,15 @@ private:
     int paramWaveform_;
     int paramA32D32_;
     int paramA32D16_;
+    int paramDesyncCount_;
+    int paramResyncCount_;
+    int paramDiscardedWords_;
+    int paramBLTErrorCount_;
+
+    epicsInt32 desyncCount_ = 0;
+    epicsInt32 resyncCount_ = 0;
+    epicsInt32 discardedWords_ = 0;
+    epicsInt32 bltErrorCount_ = 0;
 };
 
 #endif

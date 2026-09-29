@@ -640,6 +640,10 @@ int sis3153eth::udp_single_read ( unsigned int nof_read_words, UINT* addr_ptr, U
 		else {
 			if (udp_recv_data[1] != this->packet_identifier) {
 				return_code = PROTOCOL_ERROR_CODE_WRONG_PACKET_IDENTIFIER;
+				// A delayed reply must not be mistaken for the reply to the
+				// retry.  The DMA path already flushes stale packets here;
+				// do the same for single-cycle D16/D32 reads.
+				this->clear_UdpReceiveBuffer();
 				request_retry_counter++;
 				this->udp_single_read_req_retry_counter++;
 			}
@@ -784,6 +788,8 @@ int sis3153eth::udp_single_write ( unsigned int nof_write_words, UINT* addr_ptr,
 		else {
 			if (udp_recv_data[1] != this->packet_identifier) {
 				return_code = PROTOCOL_ERROR_CODE_WRONG_PACKET_IDENTIFIER;
+				// See udp_single_read(): discard delayed replies before retrying.
+				this->clear_UdpReceiveBuffer();
 				request_retry_counter++;
 				this->udp_single_write_req_retry_counter++;
 			}

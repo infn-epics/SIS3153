@@ -1,0 +1,37 @@
+# Per-channel threshold records for the CAEN V965 dual-range QDC.
+#
+# Required macros:
+#   P                 Record prefix
+#   PORT              asyn port name
+#   BASE              Board address prefix, for example 0xee00
+#   CHAN              Physical channel number (0-15)
+#   THRS_ADDR_HIGH    High-range register suffix, without 0x
+#   THRS_ADDR_LOW     Low-range register suffix, without 0x
+
+record(longout, "$(P)Ch$(CHAN)ThresholdHigh") {
+    field(DESC, "Ch $(CHAN) high-range threshold")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)$(THRS_ADDR_HIGH)")
+    info(autosaveFields_pass0, "VAL")
+}
+
+record(longin, "$(P)Ch$(CHAN)ThresholdHighRBV") {
+    field(DESC, "Ch $(CHAN) high threshold RBV")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)$(THRS_ADDR_HIGH)")
+    field(SCAN, "Passive")
+}
+
+record(longout, "$(P)Ch$(CHAN)ThresholdLow") {
+    field(DESC, "Ch $(CHAN) low-range threshold")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE)$(THRS_ADDR_LOW)")
+    info(autosaveFields_pass0, "VAL")
+}
+
+record(longin, "$(P)Ch$(CHAN)ThresholdLowRBV") {
+    field(DESC, "Ch $(CHAN) low threshold RBV")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)$(THRS_ADDR_LOW)")
+    field(SCAN, "Passive")
+}

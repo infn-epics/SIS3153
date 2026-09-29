@@ -18,35 +18,35 @@
 record(longin,"$(P)BoardID") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)803A")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
     field(PINI, "YES")
 }
 
 record(longin,"$(P)BoardVersion") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)8032")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
     field(PINI, "YES")
 }
 
 record(longin,"$(P)FirmwareRevision") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1000")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
     field(PINI, "YES")
 }
 
 record(longin,"$(P)SerialNumberLSB") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)803E")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
     field(PINI, "YES")
 }
 
 record(longin,"$(P)SerialNumberMSB") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)8036")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
     field(PINI, "YES")
 }
 
@@ -57,7 +57,7 @@ record(longin,"$(P)SerialNumberMSB") {
 record(longin,"$(P)LoadTestRegister") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)102C")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
 }
 #record(longout,"$(P)LoadTestRegister_SP") {
 #    field(DTYP, "asynInt32")
@@ -69,13 +69,13 @@ record(longin,"$(P)LoadTestRegister") {
 record(longin,"$(P)Status") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)100E")
-    field(SCAN, "1 second")
+    field(SCAN, "Passive")
 }
 
 record(longin,"$(P)Control") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1010")
-    field(SCAN, "1 second")
+    field(SCAN, "Passive")
 }
 
 #record(longout,"$(P)ControlSet") {
@@ -86,13 +86,13 @@ record(longin,"$(P)Control") {
 record(longin,"$(P)Status2") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1022")
-    field(SCAN, "1 second")
+    field(SCAN, "Passive")
 }
 
 record(longin,"$(P)BitSet_RV") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1006")
-    field(SCAN, "1 second")
+    field(SCAN, "Passive")
 }
 
 
@@ -128,7 +128,7 @@ record(longout,"$(P)SoftwareReset") {
 record(longin,"$(P)GeoAddress") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1002")
-    field(SCAN, "5 second")
+    field(SCAN, "Passive")
     field(PINI, "YES")
 }
 
@@ -151,7 +151,7 @@ record(longout,"$(P)IPedestal") {
 record(longin,"$(P)IPedestalRBV") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1060")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
 }
 
 #########################################
@@ -196,43 +196,13 @@ record(longout,"$(P)EventTrigger") {
 }
 
 #########################################
-# Thresholds (16 channels, Low and High)
-#########################################
-
-# record(longout,"$(P)Ch$(CHAN)ThresholdLow") {
-#     field(DTYP, "asynInt32")
-#     field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $  (THRS_ADDR_LOW)")
-#     field(PINI, "YES")
-#     info(autosaveFields_pass0, "VAL")
-# }
-
- record(longin,"$(P)Ch$(CHAN)ThresholdLowRBV") {
-     field(DTYP, "asynInt32")
-     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $   (THRS_ADDR_LOW)")
-     field(SCAN, "I/O Intr")
- }
-
- #record(longout,"$(P)Ch$(CHAN)ThresholdHigh") {
- #    field(DTYP, "asynInt32")
- #    field(OUT,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
- #    field(PINI, "YES")
- #    info(autosaveFields_pass0, "VAL")
- #}
-
- record(longin,"$(P)Ch$(CHAN)ThresholdHighRBV") {
-     field(DTYP, "asynInt32")
-     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE) $    (THRS_ADDR_HIGH)")
-     field(SCAN, "I/O Intr")
- }
-
-#########################################
 # Data Readout (32-bit FIFO at address 0)
 #########################################
 
 record(longin,"$(P)DataFIFO") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D32 $(BASE)0000")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
 }
 
 record(waveform, "$(P)A32BLT32_DUMMY") {
@@ -240,8 +210,40 @@ record(waveform, "$(P)A32BLT32_DUMMY") {
   field(DTYP, "asynInt32ArrayIn")
   field(INP,  "@asyn($(PORT),0) A32BLT32 $(BASE)0000")
   field(FTVL, "LONG")     # perché sono epicsInt32
-  field(NELM, "1024")     # numero di word max che vuoi supportare
+  field(NELM, "32")     # numero di word max che vuoi supportare
   field(SCAN, "I/O Intr")
+}
+
+#########################################
+# Acquisition diagnostics (wrapper-local)
+#########################################
+
+record(longin, "$(P)Diagnostics:DesyncCount") {
+    field(DESC, "FIFO desynchronizations")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0) DIAG_DESYNC_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)Diagnostics:ResyncCount") {
+    field(DESC, "FIFO resynchronizations")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0) DIAG_RESYNC_COUNT")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)Diagnostics:DiscardedWords") {
+    field(DESC, "Total discarded FIFO words")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0) DIAG_DISCARDED_WORDS")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)Diagnostics:BLTErrorCount") {
+    field(DESC, "Failed or partial BLT reads")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),0) DIAG_BLT_ERROR_COUNT")
+    field(SCAN, "I/O Intr")
 }
 
 
@@ -264,7 +266,7 @@ record(longout,"$(P)SlideConstant") {
 record(longin,"$(P)AlmostFullLevel") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1070")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
     #info(autosaveFields_pass0, "VAL")
 }
 
@@ -275,7 +277,7 @@ record(longin,"$(P)AlmostFullLevel") {
 record(longin,"$(P)BufferAlmostDone") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PORT),0) A32D16 $(BASE)1072")
-    field(SCAN, "I/O Intr")
+    field(SCAN, "Passive")
     #info(autosaveFields_pass0, "VAL")
 }
 
